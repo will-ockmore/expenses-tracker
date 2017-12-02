@@ -1,0 +1,10 @@
+# python environment
+env
+*.pyc
+.cache
+
+# mac
+.DS_Store
+
+# generated results
+result.csv

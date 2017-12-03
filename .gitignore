@@ -7,4 +7,4 @@ env
 .DS_Store
 
 # generated results
-result.csv
+*.csv

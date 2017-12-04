@@ -6,5 +6,6 @@ env
 # mac
 .DS_Store
 
-# generated results
+# generated results / personal info
+statements
 *.csv

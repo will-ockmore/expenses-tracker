@@ -6,6 +6,11 @@ import argparse
 import pandas as pd
 from termcolor import colored
 
+from logs import setup_logging
+import db
+
+setup_logging()
+
 INSTITUTIONS = [
     'amex',
     'halifax'
@@ -130,8 +135,15 @@ def categorise_record(record, records):
 
 
 if __name__ == '__main__':
+    db.set_up_db()
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument(
+        'infile',
+        nargs='?',
+        type=argparse.FileType('r'),
+        default=sys.stdin
+    )
     parser.add_argument(
         '--source',
         '-s',

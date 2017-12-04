@@ -9,3 +9,7 @@ env
 # generated results / personal info
 statements
 *.csv
+transactions_db.sqlite3
+
+# logs
+*.log

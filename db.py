@@ -13,6 +13,7 @@ pk_column = 'id'  # uuid (text)
 date = 'date'  # date
 reference = 'reference'  # text
 institution = 'institution'  # text
+category = 'category'  # text
 debit = 'debit'  # real
 credit = 'credit'  # real
 
@@ -33,8 +34,15 @@ def set_up_db():
                     {date} date NOT NULL,
                     {reference} text NOT NULL,
                     {institution} text NOT NULL,
-                    {debit} real,
-                    {credit} real
+                    {category} text NOT NULL,
+                    {debit} real NOT NULL,
+                    {credit} real NOT NULL,
+                    UNIQUE
+                    (
+                        {reference},
+                        {debit},
+                        {credit}
+                    )
                 )
                 '''
             )
@@ -48,27 +56,54 @@ def write_record(record):
     try:
         with conn:
             conn.execute(
-                'INSERT INTO transactions VALUES (?, ?, ?, ?, ?, ?)',
+                'INSERT INTO transactions VALUES (?, ?, ?, ?, ?, ?, ?)',
                 (
                     str(uuid4()),
                     record['date'],
                     record['reference'],
                     record['institution'],
+                    record['category'],
                     record['debit'],
                     record['credit'],
                 )
             )
-
     except sqlite3.Error as e:
         logger.exception('Error writing to the database')
 
 
-def get_records():
+def get_record_category(record):
     try:
         c.execute(
-            'SELECT * FROM transactions'
+            f'''
+            SELECT
+                *
+            FROM
+                {table_name}
+            WHERE
+                {reference} = ?
+            AND
+                {institution} = ?
+            AND
+                {debit} = ?
+            AND
+                {credit} = ?
+            ''',
+            (
+                record['reference'],
+                record['institution'],
+                record['debit'],
+                record['credit'],
+            )
         )
-        return c.fetchall()
+
+        results = c.fetchall()
 
     except sqlite3.Error as e:
         logger.exception('Error reading the table')
+
+    if not results:
+        return None
+
+    category = results[0][4]
+
+    return category

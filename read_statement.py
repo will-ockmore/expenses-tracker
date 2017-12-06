@@ -33,11 +33,12 @@ CATEGORIES_KEYMAP = {
 }
 
 CSV_COLUMNS = [
-    'date',
-    'reference',
-    'debit',
+    'category',
     'credit',
-    'institution'
+    'date',
+    'debit',
+    'institution',
+    'reference',
 ]
 
 
@@ -57,8 +58,8 @@ def get_amex_record(row):
     return {
         'date': row[0],
         'reference': row[3],
-        'debit': amount if amount > 0 else None,
-        'credit': abs(amount) if amount < 0 else None,
+        'debit': amount if amount > 0 else 0,
+        'credit': abs(amount) if amount < 0 else 0,
         'institution': 'amex'
     }
 
@@ -81,7 +82,7 @@ def read_csv(csv_file, institution):
 def print_record(record, suffix='', display_category=False):
     # format a record to display in the terminal
 
-    result = '{date}  {reference:50}{debit:7} {credit:7} {category:30}{suffix}'.format(  # noqa
+    result = '{date}  {reference:50}{debit:15} {credit:15} {category:30}{suffix}'.format(  # noqa
         suffix=suffix,
         date=record['date'],
         reference=colored(
@@ -115,10 +116,11 @@ def choose_category(record):
             colored('Unknown category, try again:', 'red')
         )
 
-    if category_choice.isupper():
-        db.write_record(record)
-
     record['category'] = CATEGORIES_KEYMAP[category_choice.lower()]
+
+    if category_choice.isupper():
+        # chosen to save this transaction category
+        db.write_record(record)
 
     return record
 
@@ -147,8 +149,10 @@ def categorise_record(record, records):
     print(colored('Categories:', attrs=['bold']))
     print()
     print('Capitalise choice to save the category for this transaction.')
-    print('Whenever this combination of reference and debit/credit is seen again,')
-    print('the category you chose will be automatically applied.')
+    print(
+        'Whenever this combination of reference and debit/credit is seen '
+        'again, the category you chose will be automatically applied.'
+    )  # noqa
     print()
 
     for key, category in CATEGORIES_KEYMAP.items():
@@ -182,10 +186,25 @@ if __name__ == '__main__':
     records = read_csv(args.infile, args.source)
     dates = [record['date'] for record in records]
 
-    records_with_categories = [
-        categorise_record(record, records)
+    records_already_categorised = []
+
+    for record in records:
+        record['category'] = db.get_record_category(record)
+
+        if record['category']:
+            records_already_categorised.append(record)
+
+    uncategorised_records = [
+        record
         for record
         in records
+        if record not in records_already_categorised
+    ]
+
+    records_manually_categorised = [
+        categorise_record(record, uncategorised_records)
+        for record
+        in uncategorised_records
     ]
 
     csv_filename = '{}-{}-{}.csv'.format(
@@ -198,19 +217,31 @@ if __name__ == '__main__':
 
     print()
     print(colored(
-        'Categorised the following transactions:',
+        'Automatically categorised:',
         attrs=['bold']
     ))
     print()
 
-    for record in records_with_categories:
+    for record in records_already_categorised:
+        print_record(record, display_category=True)
+
+    print()
+    print(colored(
+        'Manually categorised:',
+        attrs=['bold']
+    ))
+    print()
+
+    for record in records_manually_categorised:
         print_record(record, display_category=True)
 
     print()
     print(f'Writing to {csv_filename}...')
     print()
 
-    pd.DataFrame(records_with_categories)[CSV_COLUMNS].to_csv(
+    pd.DataFrame(
+        records_manually_categorised + records_already_categorised
+    )[CSV_COLUMNS].to_csv(
         csv_filename,
         index=False,
         header=False

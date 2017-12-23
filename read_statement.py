@@ -46,8 +46,8 @@ def get_halifax_record(row):
     return {
         'date': row[0],
         'reference': row[4],
-        'debit': row[5],
-        'credit': row[6],
+        'debit': row[5] or 0,
+        'credit': row[6] or 0,
         'institution': 'halifax'
     }
 

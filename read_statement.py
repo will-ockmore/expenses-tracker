@@ -25,6 +25,7 @@ CATEGORIES_KEYMAP = {
     'd': 'Entertainment',
     'z': 'Savings',
     'x': 'Eating Out/Drinks',
+    'g': 'Clothing',
     'v': 'Earnings',
     't': 'Transfers',
     'f': 'Cash Withdrawal',

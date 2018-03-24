@@ -13,7 +13,8 @@ setup_logging()
 
 INSTITUTIONS = [
     'amex',
-    'halifax'
+    'halifax',
+    'firstdirect'
 ]
 
 CATEGORIES_KEYMAP = {
@@ -65,9 +66,22 @@ def get_amex_record(row):
     }
 
 
+def get_firstdirect_record(row):
+    amount = float(row[2])
+
+    return {
+        'date': row[0],
+        'reference': row[1],
+        'debit': abs(amount) if amount < 0 else 0,
+        'credit': amount if amount > 0 else 0,
+        'institution': 'firstdirect'
+    }
+
+
 INSTITUTION_RECORDS = {
     'halifax': get_halifax_record,
     'amex': get_amex_record,
+    'firstdirect': get_firstdirect_record,
 }
 
 

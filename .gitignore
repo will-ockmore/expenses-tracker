@@ -6,6 +6,9 @@ env
 # mac
 .DS_Store
 
+# editor
+.vscode
+
 # generated results / personal info
 statements
 *.csv
